@@ -1,4 +1,7 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
+import { NgForm } from '@angular/forms';
+
+import { Post } from '../post.model';
 
 @Component({
     selector: 'app-post-create',
@@ -6,11 +9,18 @@ import { Component, ViewChild } from '@angular/core';
     styleUrls: ['./post-create.component.css']
 })
 export class PostCreateComponent {
-    @ViewChild('text') oldPost;
-    newPost = '';
+    @Output() newPost = new EventEmitter<Post>();
 
-    onAddPost() {
-        this.newPost = this.oldPost.nativeElement.value;
-        this.oldPost.nativeElement.value = '';
+    onAddPost(postForm: NgForm) {
+        if (postForm.invalid) {
+            return;
+        }
+
+        const post: Post = {
+            title: postForm.value.title,
+            content: postForm.value.content
+        };
+
+        this.newPost.emit(post);
     }
 }
