@@ -6,3 +6,7 @@ textarea {
 .post_list {
     margin-bottom: 1rem;
 }
+
+mat-spinner {
+    margin: auto;
+}
