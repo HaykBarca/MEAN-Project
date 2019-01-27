@@ -11,6 +11,7 @@ import { AuthData } from './auth-data.model';
 export class AuthService {
     private token: string;
     private isAuthenticated = false;
+    private userId: string;
     private userAuthenSubject = new Subject<boolean>();
 
     constructor(private httpClient: HttpClient, private router: Router) {}
@@ -21,6 +22,10 @@ export class AuthService {
 
     getUserStatus() {
         return this.userAuthenSubject.asObservable();
+    }
+
+    getUserId() {
+        return this.userId;
     }
 
     getIsAuth() {
@@ -37,13 +42,14 @@ export class AuthService {
 
     loginUser(email: string, password: string) {
         const authData: AuthData = {email, password};
-        this.httpClient.post<{token: string}>('http://localhost:3000/api/users/login', authData)
+        this.httpClient.post<{token: string, userId: string}>('http://localhost:3000/api/users/login', authData)
             .subscribe(response => {
                 this.token = response.token;
                 if (this.token) {
                     this.isAuthenticated = true;
+                    this.userId = response.userId;
                     this.userAuthenSubject.next(true);
-                    this.saveTokenInLocalStorage(this.token);
+                    this.saveTokenInLocalStorage(this.token, this.userId);
                     this.router.navigate(['/']);
                 }
             });
@@ -54,6 +60,7 @@ export class AuthService {
         this.isAuthenticated = false;
         this.userAuthenSubject.next(false);
         this.removeTokenFromLocalStorage();
+        this.userId = null;
         this.router.navigate(['/']);
     }
 
@@ -63,25 +70,29 @@ export class AuthService {
         if (authInfo) {
             this.token = authInfo.token;
             this.isAuthenticated = true;
+            this.userId = authInfo.userId;
             this.userAuthenSubject.next(true);
         }
     }
 
-    private saveTokenInLocalStorage(token: string) {
+    private saveTokenInLocalStorage(token: string, userId: string) {
         localStorage.setItem('token', token);
+        localStorage.setItem('userId', userId);
     }
 
     private removeTokenFromLocalStorage() {
         localStorage.removeItem('token');
+        localStorage.removeItem('userId');
     }
 
     private getAuthData() {
         const token = localStorage.getItem('token');
+        const userId = localStorage.getItem('userId');
 
         if (!token) {
             return;
         }
 
-        return {token};
+        return {token, userId};
     }
 }

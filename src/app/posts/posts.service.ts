@@ -28,7 +28,8 @@ export class PostsService {
                                 title: post.title,
                                 content: post.content,
                                 id: post._id,
-                                imagePath: post.imagePath
+                                imagePath: post.imagePath,
+                                creator: post.creator
                             };
                         }
                     ),
@@ -51,7 +52,8 @@ export class PostsService {
             _id: string,
             title: string,
             content: string,
-            imagePath: string
+            imagePath: string,
+            creator: string
         }>('http://localhost:3000/api/posts/' + id);
     }
 
@@ -80,7 +82,8 @@ export class PostsService {
                 id,
                 title,
                 content,
-                imagePath: image
+                imagePath: image,
+                creator: null
             };
         }
         this.httpClient.put('http://localhost:3000/api/posts/' + id, postData)

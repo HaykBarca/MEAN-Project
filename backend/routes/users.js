@@ -55,7 +55,10 @@ route.post('/login', (req, res, next) => {
             { expiresIn: '1h' }
         );
         
-        res.json({token});
+        res.json({
+            token,
+            userId: fetchedUser._id
+        });
     })
     .catch(err => {
         return res.sendStatus(401).json({

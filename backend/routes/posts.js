@@ -34,7 +34,8 @@ route.post('', checkAuth, multer({storage}).single('image'), (req, res, next) =>
     const post = new Post({
         title: req.body.title,
         content: req.body.content,
-        imagePath: url + '/images/' + req.file.filename
+        imagePath: url + '/images/' + req.file.filename,
+        creator: req.userData.userId
     });
     post.save().then(createdPost => {
         console.log(post);
@@ -44,7 +45,8 @@ route.post('', checkAuth, multer({storage}).single('image'), (req, res, next) =>
                 id: createdPost._id,
                 title: createdPost.title,
                 content: createdPost.content,
-                imagePath: createdPost.imagePath
+                imagePath: createdPost.imagePath,
+                creator: createdPost.userId
             }
         });
     });
@@ -60,11 +62,15 @@ route.put('/:id', checkAuth, multer({storage}).single('image'), (req, res, next)
         _id: req.body.id,
         title: req.body.title,
         content: req.body.content,
-        imagePath: imagePath
+        imagePath: imagePath,
+        creator: req.userData.userId
     });
-    Post.updateOne({_id: req.params.id}, post).then(result => {
-        console.log(result);
-        res.status(200).json({message: 'Success'});
+    Post.updateOne({ _id: req.params.id, creator: req.userData.userId }, post).then(result => {
+        if (result.nModified > 0) {
+            res.status(200).json({message: 'Post Updated'});
+        } else {
+            res.status(401).json({message: 'Unautorized'});
+        }
     });
 });
 
@@ -105,11 +111,14 @@ route.get('/:id', (req, res, next) => {
 });
 
 route.delete('/:id', checkAuth, (req, res, next) => {
-    Post.deleteOne({_id: req.params.id})
+    Post.deleteOne({ _id: req.params.id, creator: req.userData.userId })
         .then(
             (result) => {
-                console.log(result);
-                res.status(200).json({ message: 'Post deleted.' });
+                if (result.n > 0) {
+                    res.status(200).json({message: 'Post Deleted'});
+                } else {
+                    res.status(401).json({message: 'Unautorized'});
+                }
             }
         )
 });
