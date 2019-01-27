@@ -3,6 +3,8 @@ const multer = require('multer');
 
 const Post = require('../model/post').postModel;
 
+const checkAuth = require('../middleware/check-auth');
+
 const route = express.Router();
 
 const MIME_TYPE_MAP = {
@@ -27,7 +29,7 @@ const storage = multer.diskStorage({
     }
 })
 
-route.post('', multer({storage}).single('image'), (req, res, next) => {
+route.post('', checkAuth, multer({storage}).single('image'), (req, res, next) => {
     const url = req.protocol + '://' + req.get("host");
     const post = new Post({
         title: req.body.title,
@@ -48,7 +50,7 @@ route.post('', multer({storage}).single('image'), (req, res, next) => {
     });
 });
 
-route.put('/:id', multer({storage}).single('image'), (req, res, next) => {
+route.put('/:id', checkAuth, multer({storage}).single('image'), (req, res, next) => {
     let imagePath = req.body.imagePath;
     if (req.file) {
         const url = req.protocol + '://' + req.get("host");
@@ -57,7 +59,8 @@ route.put('/:id', multer({storage}).single('image'), (req, res, next) => {
     const post = new Post({
         _id: req.body.id,
         title: req.body.title,
-        content: req.body.content
+        content: req.body.content,
+        imagePath: imagePath
     });
     Post.updateOne({_id: req.params.id}, post).then(result => {
         console.log(result);
@@ -101,7 +104,7 @@ route.get('/:id', (req, res, next) => {
     });
 });
 
-route.delete('/:id', (req, res, next) => {
+route.delete('/:id', checkAuth, (req, res, next) => {
     Post.deleteOne({_id: req.params.id})
         .then(
             (result) => {

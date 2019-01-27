@@ -9,7 +9,7 @@ const usersRoutes = require('./routes/users').route;
 
 const app = express();
 
-mongoose.connect('mongodb://HaykBarca:haykbarca19939563@ds255754.mlab.com:55754/angularapp')
+mongoose.connect('mongodb://HaykBarca:haykbarca19939563@ds255754.mlab.com:55754/angularapp', { useNewUrlParser: true, useCreateIndex: true })
     .then(() => {
         console.log('Connected Successfully');
     })
@@ -23,12 +23,16 @@ app.use('/images', express.static(path.join('backend/images')));
 
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Headers',
-        'Origin, X-Requested-With, Content-Type, Accept');
-    res.setHeader('Access-Control-Allow-Methods',
-        'GET, POST, PATCH, PUT, DELETE, OPTIONS');
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+    );
+    res.setHeader(
+      'Access-Control-Allow-Methods',
+      'GET, POST, PATCH, PUT, DELETE, OPTIONS'
+    );
     next();
-});
+  });
 
 app.use('/api/posts', postsRoutes);
 app.use('/api/users', usersRoutes);
