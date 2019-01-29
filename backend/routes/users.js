@@ -22,8 +22,8 @@ route.post('/signup', (req, res, next) => {
                     })
                 })
                 .catch(err => {
-                    res.sendStatus(500).json({
-                        err
+                    res.status(500).json({
+                        message: 'Invalid authentication credentials!'
                     })
                 });
         });
@@ -33,7 +33,7 @@ route.post('/login', (req, res, next) => {
     let fetchedUser;
     User.findOne({ email: req.body.email }).then(user => {
       if(!user) {
-          return res.sendStatus(401).json({
+          return res.status(401).json({
               message: 'Auth failed'
           });
       }
@@ -44,7 +44,7 @@ route.post('/login', (req, res, next) => {
     })
     .then(result => {
         if(!result) {
-            return res.sendStatus(401).json({
+            return res.status(401).json({
                 message: 'Auth failed'
             });
         }
@@ -61,8 +61,8 @@ route.post('/login', (req, res, next) => {
         });
     })
     .catch(err => {
-        return res.sendStatus(401).json({
-            message: 'Auth failed'
+        return res.status(401).json({
+            message: 'Invalid authentication credentials!'
         });
     });
 });
