@@ -1,126 +1,20 @@
 const express = require('express');
-const multer = require('multer');
 
-const Post = require('../model/post').postModel;
+const postsControllers = require('../controllers/posts');
 
 const checkAuth = require('../middleware/check-auth');
+const extractFile = require('../middleware/file');
 
 const route = express.Router();
 
-const MIME_TYPE_MAP = {
-    'image/png': 'png',
-    'image/jpeg': 'jpg',
-    'image/jpg': 'jpg'
-};
+route.post('', checkAuth, extractFile, postsControllers.createPost);
 
-const storage = multer.diskStorage({
-    destination: (req, file, callBack) => {
-        const isValid = MIME_TYPE_MAP[file.mimetype];
-        let error = new Error('Invalid mime type');
-        if (isValid) {
-            error = null;
-        }
-        callBack(null, 'backend/images');
-    },
-    filename: (req, file, callBack) => {
-        const name = file.originalname.toLowerCase().split(' ').join('-');
-        const ext = MIME_TYPE_MAP[file.mimetype];
-        callBack(null, name + '-' + Date.now() + '.' + ext);
-    }
-})
+route.put('/:id', checkAuth, extractFile, postsControllers.updatePost);
 
-route.post('', checkAuth, multer({storage}).single('image'), (req, res, next) => {
-    const url = req.protocol + '://' + req.get("host");
-    const post = new Post({
-        title: req.body.title,
-        content: req.body.content,
-        imagePath: url + '/images/' + req.file.filename,
-        creator: req.userData.userId
-    });
-    post.save().then(createdPost => {
-        console.log(post);
-        res.status(201).json({
-            message: 'Added successfully',
-            post: {
-                id: createdPost._id,
-                title: createdPost.title,
-                content: createdPost.content,
-                imagePath: createdPost.imagePath,
-                creator: createdPost.userId
-            }
-        });
-    });
-});
+route.get('', postsControllers.getPosts);
 
-route.put('/:id', checkAuth, multer({storage}).single('image'), (req, res, next) => {
-    let imagePath = req.body.imagePath;
-    if (req.file) {
-        const url = req.protocol + '://' + req.get("host");
-        imagePath = url + '/images/' + req.file.filename;
-    }
-    const post = new Post({
-        _id: req.body.id,
-        title: req.body.title,
-        content: req.body.content,
-        imagePath: imagePath,
-        creator: req.userData.userId
-    });
-    Post.updateOne({ _id: req.params.id, creator: req.userData.userId }, post).then(result => {
-        if (result.nModified > 0) {
-            res.status(200).json({message: 'Post Updated'});
-        } else {
-            res.status(401).json({message: 'Unautorized'});
-        }
-    });
-});
+route.get('/:id', postsControllers.getPost);
 
-route.get('', (req, res, next) => {
-    const pageSize = parseInt(req.query.pagesize);
-    const currentPage = parseInt(req.query.page);
-    const postQuery = Post.find();
-    let fetchedPosts;
-
-    if (pageSize && currentPage) {
-        postQuery
-            .skip(pageSize * (currentPage - 1))
-            .limit(pageSize)
-    }
-
-    postQuery
-        .then(documents => {
-            fetchedPosts = documents;
-            return Post.count();
-        })
-        .then(count => {
-            res.status(200).json({
-                message: 'Message with success',
-                posts: fetchedPosts,
-                maxPosts: count
-            })
-        });
-});
-
-route.get('/:id', (req, res, next) => {
-    Post.findById(req.params.id).then(post => {
-        if (post) {
-            res.status(200).json(post);
-        } else {
-            res.status(404).json({message: 'Post not found!'});
-        }
-    });
-});
-
-route.delete('/:id', checkAuth, (req, res, next) => {
-    Post.deleteOne({ _id: req.params.id, creator: req.userData.userId })
-        .then(
-            (result) => {
-                if (result.n > 0) {
-                    res.status(200).json({message: 'Post Deleted'});
-                } else {
-                    res.status(401).json({message: 'Unautorized'});
-                }
-            }
-        )
-});
+route.delete('/:id', checkAuth, postsControllers.deletePost);
 
 module.exports = {route};

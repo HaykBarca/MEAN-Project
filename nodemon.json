@@ -1,0 +1,6 @@
+{
+    "env" : {
+        "MONGO_PW": "haykbarca19939563",
+        "JWT_KEY": "this_is_a_secret_and_it_should_be_long"
+    }
+}

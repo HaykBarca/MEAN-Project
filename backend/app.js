@@ -9,7 +9,7 @@ const usersRoutes = require('./routes/users').route;
 
 const app = express();
 
-mongoose.connect('mongodb://HaykBarca:haykbarca19939563@ds255754.mlab.com:55754/angularapp', { useNewUrlParser: true, useCreateIndex: true })
+mongoose.connect('mongodb://HaykBarca:' + process.env.MONGO_PW +'@ds255754.mlab.com:55754/angularapp', { useNewUrlParser: true, useCreateIndex: true })
     .then(() => {
         console.log('Connected Successfully');
     })
